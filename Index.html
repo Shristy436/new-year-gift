@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>New Year Surprise</title>
+    <style>
+        /* 1. RESET & BASE STYLES */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            background: #1a002a; /* Deep Purple */
+            background: radial-gradient(circle, #2e003e 0%, #05000a 100%);
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; /* Prevents scrolling */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 2. FLOATING HEARTS ANIMATION */
+        .hearts-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .floating-heart {
+            position: absolute;
+            bottom: -50px;
+            color: rgba(255, 77, 148, 0.4);
+            font-size: 20px;
+            animation: floatUp 6s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* 3. SCREEN MANAGEMENT */
+        .screen {
+            display: none;
+            position: absolute;
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .active { display: flex; }
+
+        h2 { font-size: 24px; margin-bottom: 10px; font-weight: 500; }
+        p { font-size: 16px; opacity: 0.8; margin-bottom: 30px; }
+
+        /* 4. SCREEN 1: THE PERFECT HEART */
+        .hold-wrapper {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hold-button {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 2;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+
+        .hold-button:active { transform: scale(0.95); }
+
+        .heart-main { font-size: 60px; pointer-events: none; }
+
+        .progress-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 200px;
+            transform: rotate(-90deg);
+            pointer-events: none;
+        }
+
+        .progress-svg circle {
+            fill: none;
+            stroke: #ff4d94;
+            stroke-width: 8;
+            stroke-dasharray: 565; /* Circumference of 2*pi*90 */
+            stroke-dashoffset: 565;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.1s linear;
+        }
+
+        /* 5. SCREEN 2: STACKED CARDS */
+        .stack-container {
+            position: relative;
+            width: 300px;
+            height: 250px;
+            margin-top: 20px;
+        }
+
+        .distraction-card {
+            position: absolute;
+            width: 100%;
+            height: 180px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s;
+            user-select: none;
+        }
+
+        /* Fixed Stack Order */
+        .card-1 { background: #ffc2e2; z-index: 5; transform: rotate(-3deg); }
+        .card-2 { background: #fff4bd; z-index: 4; transform: rotate(2deg) translateY(5px); }
+        .card-3 { background: #bde4ff; z-index: 3; transform: rotate(-1deg) translateY(10px); }
+
+        .gift-hidden {
+            font-size: 100px;
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            z-index: 1;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .gift-show { transform: translateX(-50%) scale(1); }
+
+        /* 6. SCREEN 3: FINAL CARD */
+        .card-wrapper {
+            width: 300px;
+            height: 420px;
+            perspective: 1500px;
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: left;
+        }
+
+        .card-wrapper.open .card-inner { transform: rotateY(-170deg); }
+
+        .card-front, .card-inside {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .card-front {
+            background: white;
+            color: #333;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-inside {
+            background: #fffafa;
+            color: #444;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hearts-bg" id="heartsBg"></div>
+
+    <section id="screen1" class="screen active">
+        <h2>A little surprise for you</h2>
+        <p>Before this year begins</p>
+        <div class="hold-wrapper">
+            <div class="hold-button" id="holdBtn">
+                <span class="heart-main">❤️</span>
+            </div>
+            <svg class="progress-svg">
+                <circle cx="100" cy="100" r="90"></circle>
+            </svg>
+        </div>
+        <p style="margin-top: 30px;">Tap and hold</p>
+    </section>
+
+    <section id="screen2" class="screen">
+        <h2>Something is waiting for you</h2>
+        <p>Move the little distractions aside</p>
+        <div class="stack-container">
+            <div class="gift-hidden" id="gift" onclick="goToFinal()">🎁</div>
+            <div class="distraction-card card-1" onclick="swipe(this)">Work</div>
+            <div class="distraction-card card-2" onclick="swipe(this)">Stress</div>
+            <div class="distraction-card card-3" onclick="swipe(this)">Bad Days</div>
+        </div>
+    </section>
+
+    <section id="screen3" class="screen">
+        <p>For my Cutiepie :)</p>
+        <div class="card-wrapper" id="finalCard" onclick="this.classList.toggle('open')">
+            <div class="card-inner">
+                <div class="card-front">
+                    <h1 style="color: #ff4d94; font-size: 50px;">2026</h1>
+                    <p style="color: #666;">Happy New Year</p>
+                    <span style="font-size: 60px;">🐻❤️</span>
+                </div>
+                <div class="card-inside">
+                    <p style="margin-bottom: 15px;">I hope this year brings you calm mornings, peaceful nights, and little moments that make you smile without any reason.</p>
+                    <p><b>May every challenge turn into strength. You deserve all the happiness!</b></p>
+                </div>
+            </div>
+        </div>
+        <p style="margin-top: 20px; font-size: 13px;">Tap the card to read</p>
+    </section>
+
+    <script>
+        // 1. Generate Random Background Hearts
+        const heartsBg = document.getElementById('heartsBg');
+        for (let i = 0; i < 25; i++) {
+            const h = document.createElement('div');
+            h.className = 'floating-heart';
+            h.innerHTML = '❤️';
+            h.style.left = Math.random() * 100 + 'vw';
+            h.style.animationDelay = Math.random() * 5 + 's';
+            h.style.fontSize = (10 + Math.random() * 20) + 'px';
+            heartsBg.appendChild(h);
+        }
+
+        // 2. Hold Logic for Screen 1
+        const holdBtn = document.getElementById('holdBtn');
+        const circle = document.querySelector('circle');
+        let progress = 565; // Circumference
+        let holdInterval;
+
+        function startProgress() {
+            holdInterval = setInterval(() => {
+                progress -= 8;
+                if (progress < 0) progress = 0;
+                circle.style.strokeDashoffset = progress;
+                
+                if (progress <= 0) {
+                    clearInterval(holdInterval);
+                    changeScreen('screen1', 'screen2');
+                }
+            }, 25);
+        }
+
+        function stopProgress() {
+            clearInterval(holdInterval);
+            progress = 565;
+            circle.style.strokeDashoffset = 565;
+        }
+
+        holdBtn.addEventListener('mousedown', startProgress);
+        holdBtn.addEventListener('mouseup', stopProgress);
+        holdBtn.addEventListener('mouseleave', stopProgress);
+        holdBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startProgress(); });
+        holdBtn.addEventListener('touchend', stopProgress);
+
+        // 3. Swipe Logic for Screen 2
+        let swipedCount = 0;
+        function swipe(card) {
+            card.style.transform = "translateX(500px) rotate(45deg)";
+            card.style.opacity = "0";
+            swipedCount++;
+            if (swipedCount === 3) {
+                setTimeout(() => {
+                    document.getElementById('gift').classList.add('gift-show');
+                }, 300);
+            }
+        }
+
+        // 4. Navigation
+        function changeScreen(oldId, newId) {
+            document.getElementById(oldId).classList.remove('active');
+            document.getElementById(newId).classList.add('active');
+        }
+
+        function goToFinal() {
+            changeScreen('screen2', 'screen3');
+        }
+    </script>
+</body>
+</html>
